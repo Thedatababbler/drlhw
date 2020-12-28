@@ -87,12 +87,19 @@ class Agent():
 
         ## TODO: compute and minimize the loss
         "*** YOUR CODE HERE ***"
+        y_j = rewards + gamma * self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1) * (1 - dones)
+        Q_expected = self.qnetwork_local(states).gather(1, actions)
+        loss = F.mse_loss(y_j, Q_expected)
 
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
+            C step reset Qhat = Q?
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
         Params
